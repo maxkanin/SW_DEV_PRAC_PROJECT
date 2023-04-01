@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const HospitalSchema = new mongoose.Schema(
+const CampgroundSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -24,6 +24,11 @@ const HospitalSchema = new mongoose.Schema(
     },
     tel: {
       type: String,
+      required: [true, "Please add a telephone number"],
+      match: [
+        /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/,
+        "Please add a valid telephone",
+      ],
     },
     region: {
       type: String,
@@ -34,16 +39,16 @@ const HospitalSchema = new mongoose.Schema(
 );
 
 //Casscade delete appointment when a hospital is delete
-HospitalSchema.pre("remove", async function (next) {
-  console.log(`Appointment being remove from hospital ${this._id}`);
-  await this.model("Appointment").deleteMany({ hospital: this._id });
+CampgroundSchema.pre("remove", async function (next) {
+  console.log(`Booking being remove from Campground ${this._id}`);
+  // await this.model("Booking").deleteMany({ campground: this._id });
   next();
 });
 
-HospitalSchema.virtual("appointments", {
-  ref: "Appointment",
+CampgroundSchema.virtual("bookings", {
+  ref: "Booking",
   localField: "_id",
-  foreignField: "hospital",
+  foreignField: "campground",
   justOne: false,
 });
-module.exports = mongoose.model("Hospital", HospitalSchema);
+module.exports = mongoose.model("Campground", CampgroundSchema);

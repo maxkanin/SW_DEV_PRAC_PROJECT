@@ -6,9 +6,9 @@ dotenv.config({ path: "./config/config.env" });
 //connect to DB
 connectDB();
 //Route file
-const hospitals = require(`./routes/hospitals`);
+const campgrounds = require(`./routes/campgrounds`);
 const auth = require("./routes/auth");
-const appointments = require("./routes/appointments");
+// const appointments = require("./routes/appointments");
 
 const app = express();
 
@@ -23,9 +23,9 @@ const app = express();
 
 app.use(express.json());
 //Mount  router
-app.use(`/api/v1/hospitals`, hospitals);
+app.use(`/api/v1/campgrounds`, campgrounds);
 app.use("/api/v1/auth", auth);
-app.use("/api/v1/appointments", appointments);
+// app.use("/api/v1/appointments", appointments);
 app.use(cookieParser());
 const PORT = process.env.PORT;
 const server = app.listen(

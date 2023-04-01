@@ -1,9 +1,9 @@
-const Hospital = require("../models/Hospital");
+const Campground = require("../models/Campground");
 //@desc Get all hospitals
 //@route Get /api/v1/hospitals
 //@access Public
 
-exports.getHospitals = async (req, res, next) => {
+exports.getCampgrounds = async (req, res, next) => {
   try {
     let query;
 
@@ -22,7 +22,7 @@ exports.getHospitals = async (req, res, next) => {
       (match) => `$${match}`
     );
     console.log(queryStr);
-    query = Hospital.find(JSON.parse(queryStr)).populate("appointments");
+    query = Campground.find(JSON.parse(queryStr)); //.populate("bookings");
 
     //Select Fields
     if (req.query.select) {
@@ -45,10 +45,10 @@ exports.getHospitals = async (req, res, next) => {
     const startIndex = (page - 1) * limit;
     console.log(startIndex);
     const endIndex = page * limit;
-    const total = await Hospital.countDocuments();
+    const total = await Campground.countDocuments();
     query = query.skip(startIndex).limit(limit);
 
-    const hospitals = await query;
+    const campgrounds = await query;
     //Pagination result
     const pagination = {};
     if (endIndex < total) {
@@ -65,9 +65,9 @@ exports.getHospitals = async (req, res, next) => {
     }
     res.status(200).json({
       success: true,
-      count: hospitals.length,
+      count: campgrounds.length,
       pagination,
-      data: hospitals,
+      data: campgrounds,
     });
   } catch (err) {
     console.log(err);
@@ -79,13 +79,13 @@ exports.getHospitals = async (req, res, next) => {
 //@route Get /api/v1/hospitals/:id
 //@access Public
 
-exports.getHospital = async (req, res, next) => {
+exports.getCampground = async (req, res, next) => {
   try {
-    const hospital = await Hospital.findById(req.params.id);
-    if (!hospital) {
+    const campground = await Campground.findById(req.params.id);
+    if (!campground) {
       return res.status(400).json({ success: false });
     }
-    res.status(200).json({ success: true, data: hospital });
+    res.status(200).json({ success: true, data: campground });
   } catch (err) {
     res.status(400).json({ success: false });
   }
@@ -95,25 +95,33 @@ exports.getHospital = async (req, res, next) => {
 //@route POST /api/v1/hospitals
 //@access Private
 
-exports.createHospital = async (req, res, next) => {
-  const hospital = await Hospital.create(req.body);
-  res.status(201).json({ success: true, data: hospital });
+exports.createCampground = async (req, res, next) => {
+  try {
+    const campground = await Campground.create(req.body);
+    res.status(201).json({ success: true, data: campground });
+  } catch (err) {
+    res.status(400).json({ success: false, message: err });
+  }
 };
 
 //@desc Update single hospitals
 //@route Put /api/v1/hospitals/:id
 //@access Private
 
-exports.updateHospital = async (req, res, next) => {
+exports.updateCampground = async (req, res, next) => {
   try {
-    const hospital = await Hospital.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!hospital) {
+    const campground = await Campground.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+    if (!campground) {
       return res.status(400).json({ success: false });
     }
-    return res.status(200).json({ success: true, data: hospital });
+    return res.status(200).json({ success: true, data: campground });
   } catch (err) {
     return res.status(400).json({ success: false });
   }
@@ -123,13 +131,13 @@ exports.updateHospital = async (req, res, next) => {
 //@route DELETE /api/v1/hospitals/:id
 //@access Private
 
-exports.deleteHospital = async (req, res, next) => {
+exports.deleteCampground = async (req, res, next) => {
   try {
-    const hospital = await Hospital.findById(req.params.id);
-    if (!hospital) {
+    const campground = await Campground.findById(req.params.id);
+    if (!campground) {
       return res.status(400).json({ success: false });
     }
-    hospital.remove();
+    campground.remove();
     return res.status(200).json({ success: true, data: {} });
   } catch (err) {
     return res.status(400).json({ success: false });
