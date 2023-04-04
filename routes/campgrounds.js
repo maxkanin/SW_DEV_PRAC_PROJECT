@@ -8,10 +8,10 @@ const {
 } = require("../controllers/campgrounds");
 const { protect, authorize } = require("../middleware/auth");
 
-// const appointmentRouter = require("./appointments");
+const bookingRouter = require("./bookings");
 const router = express.Router();
-//Re-route into other resource router
-// router.use("/:hospitalId/appointments/", appointmentRouter);
+// Re-route into other resource router
+router.use("/:campgroundId/bookings/", bookingRouter);
 router
   .route("/")
   .get(getCampgrounds)
