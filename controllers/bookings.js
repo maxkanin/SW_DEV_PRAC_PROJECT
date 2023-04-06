@@ -56,7 +56,7 @@ exports.getBooking = async (req, res, next) => {
 //@desc Add booking
 //@route POST /api/v1/campgrounds/:campgroundId/booking
 //@access Public
-exports.addBoooking = async (req, res, next) => {
+exports.addBooking = async (req, res, next) => {
   try {
     req.body.campground = req.params.campgroundId;
     const campground = await Campground.findById(req.params.campgroundId);

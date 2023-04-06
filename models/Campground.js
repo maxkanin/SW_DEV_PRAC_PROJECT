@@ -38,7 +38,7 @@ const CampgroundSchema = new mongoose.Schema(
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-//Casscade delete appointment when a hospital is delete
+//Casscade delete appointment when a campground is delete
 CampgroundSchema.pre("remove", async function (next) {
   console.log(`Booking being remove from Campground ${this._id}`);
   await this.model("Booking").deleteMany({ campground: this._id });
