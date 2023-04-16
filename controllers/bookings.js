@@ -56,6 +56,35 @@ exports.getBooking = async (req, res, next) => {
 //@desc Add booking
 //@route POST /api/v1/campgrounds/:campgroundId/booking
 //@access Public
+
+const isValidDate = (Bookings, currentDate) => {
+  const allDate = Bookings.map((bookings) => {
+    return bookings.bookDate;
+  });
+  if (allDate.length === 0) {
+    return true;
+  }
+  console.log(allDate);
+  allDate.sort((a, b) => {
+    return a - b;
+  });
+  let firstDate = new Date(allDate[0]);
+  let lastDate = new Date(allDate[allDate.length - 1]);
+  let checkDate = new Date(currentDate);
+  console.log(allDate);
+  console.log(firstDate, lastDate);
+  if (checkDate >= firstDate && checkDate <= lastDate) {
+    return false;
+  }
+  firstDate.setDate(firstDate.getDate() - 1);
+  lastDate.setDate(lastDate.getDate() + 1);
+  console.log(firstDate, lastDate);
+  return (
+    checkDate.getTime() === firstDate.getTime() ||
+    checkDate.getTime() === lastDate.getTime()
+  );
+};
+
 exports.addBooking = async (req, res, next) => {
   try {
     req.body.campground = req.params.campgroundId;
@@ -78,7 +107,12 @@ exports.addBooking = async (req, res, next) => {
         msg: ` the user with ID ${req.user.id} has already made 3  bookings`,
       });
     }
-
+    if (!isValidDate(existedBooking, req.body.bookDate)) {
+      return res.status(400).json({
+        success: false,
+        msg: ` the required date (${req.body.bookDate}) is not in next/before sequence`,
+      });
+    }
     const booking = await Booking.create(req.body);
     res.status(200).json({ success: true, data: booking });
   } catch (error) {
