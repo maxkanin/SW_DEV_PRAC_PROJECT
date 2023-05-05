@@ -64,21 +64,17 @@ const isValidDate = (Bookings, currentDate) => {
   if (allDate.length === 0) {
     return true;
   }
-  console.log(allDate);
   allDate.sort((a, b) => {
     return a - b;
   });
   let firstDate = new Date(allDate[0]);
   let lastDate = new Date(allDate[allDate.length - 1]);
   let checkDate = new Date(currentDate);
-  console.log(allDate);
-  console.log(firstDate, lastDate);
   if (checkDate >= firstDate && checkDate <= lastDate) {
     return false;
   }
   firstDate.setDate(firstDate.getDate() - 1);
   lastDate.setDate(lastDate.getDate() + 1);
-  console.log(firstDate, lastDate);
   return (
     checkDate.getTime() === firstDate.getTime() ||
     checkDate.getTime() === lastDate.getTime()
@@ -104,7 +100,7 @@ exports.addBooking = async (req, res, next) => {
     if (existedBooking.length >= 3 && req.user.role !== "admin") {
       return res.status(400).json({
         success: false,
-        msg: ` the user with ID ${req.user.id} has already made 3  bookings`,
+        msg: ` the user with ID ${req.user.id} has already made 3 bookings`,
       });
     }
     if (!isValidDate(existedBooking, req.body.bookDate)) {
@@ -114,7 +110,7 @@ exports.addBooking = async (req, res, next) => {
       });
     }
     const booking = await Booking.create(req.body);
-    res.status(200).json({ success: true, data: booking });
+    res.status(201).json({ success: true, data: booking });
   } catch (error) {
     console.log(error);
     return res
@@ -126,6 +122,26 @@ exports.addBooking = async (req, res, next) => {
 //@desc Update booking
 //@route PUT /api/v1/bookings/:id
 //@access Private
+
+const isMiddle = (Bookings, currentBookingId) => {
+  if (Bookings.length < 3) {
+    return false;
+  }
+  const currentBooking = Bookings.filter((bookings) => {
+    return bookings._id == currentBookingId;
+  });
+  const currentBookingDate = currentBooking[0].bookDate;
+  const allDate = Bookings.map((bookings) => {
+    return bookings.bookDate;
+  });
+
+  allDate.sort((a, b) => {
+    return a - b;
+  });
+  console.log(currentBookingDate, allDate[1]);
+  return currentBookingDate === allDate[1];
+};
+
 exports.updateBooking = async (req, res, next) => {
   try {
     let booking = await Booking.findById(req.params.id);
@@ -142,6 +158,28 @@ exports.updateBooking = async (req, res, next) => {
         msg: ` User ${req.user.id} is not autgorized to update this booking`,
       });
     }
+
+    let existedBooking = await Booking.find({ user: req.user.id });
+    if (isMiddle(existedBooking, req.params.id) && req.user.role !== "admin") {
+      return res.status(400).json({
+        success: false,
+        msg: ` this booking (${req.params.id}) is not changable due to next and prev booking`,
+      });
+    }
+
+    existedBooking = existedBooking.filter((booking) => {
+      return booking._id != req.params.id;
+    });
+    if (
+      !isValidDate(existedBooking, req.body.bookDate) &&
+      req.user.role !== "admin"
+    ) {
+      return res.status(400).json({
+        success: false,
+        msg: ` the required date (${req.body.bookDate}) is not in next/before sequence`,
+      });
+    }
+
     booking = await Booking.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -165,6 +203,13 @@ exports.deleteBooking = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         msg: ` No Booking with the id of ${req.params.id}`,
+      });
+    }
+    let existedBooking = await Booking.find({ user: req.user.id });
+    if (isMiddle(existedBooking, req.params.id) && req.user.role !== "admin") {
+      return res.status(400).json({
+        success: false,
+        msg: ` this booking (${req.params.id}) is not changable due to next and prev booking`,
       });
     }
     if (booking.user.toString() !== req.user.id && req.user.role !== "admin") {
